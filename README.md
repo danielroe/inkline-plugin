@@ -53,7 +53,7 @@
 
 ## Installation
 ~~~bash
-npm i -S @inkline/plugin @inkline/inkline@next
+npx nuxi@latest module add inkline
 ~~~
 
 ## Configuration
