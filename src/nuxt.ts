@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { template } from 'lodash-es'
 import {
     defineNuxtModule,
     addPluginTemplate,
@@ -88,13 +86,33 @@ export const module: NuxtModule<InklineModule> = defineNuxtModule({
             // Add plugin template
             addPluginTemplate({
                 mode: "all",
-                getContents({ options }) {
-                  const contents = readFileSync(resolve(templatesDir, "nuxt.ejs"), "utf-8")
-                  return template(contents)({ options })
+                getContents() {
+                    return [
+                        `import { defineNuxtPlugin, defineNuxtLink } from '#app';`,
+                        `import { markRaw } from 'vue';`,
+                        `import { Inkline } from '@inkline/inkline';`,
+                        `import { colorModeLocalStorageKey } from '@inkline/inkline/plugins';`,
+                        ``,
+                        `export default defineNuxtPlugin((nuxtApp) => {`,
+                        `    const NuxtLink = defineNuxtLink({ componentName: 'InklineNuxtLink' });`,
+                        ``,
+                        `    nuxtApp.vueApp.use(Inkline, {`,
+                        `        renderMode: 'universal',`,
+                        `        routerComponent: markRaw(NuxtLink),`,
+                        `        ...${JSON.stringify(globals)}`,
+                        `    });`,
+                        ``,
+                        `    nuxtApp.hook('app:suspense:resolve', () => {`,
+                        `        const storedColorMode = localStorage.getItem(colorModeLocalStorageKey);`,
+                        `        if (storedColorMode) {`,
+                        `            nuxtApp.vueApp.config.globalProperties.$inkline.options.colorMode = storedColorMode;`,
+                        `        }`,
+                        `    })`,
+                        `});`,
+                    ].join("\n");
                 },
                 write: true,
                 filename: "inkline.mjs",
-                options: globals || {},
             });
         }
 
