@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { template } from 'lodash-es'
 import {
     defineNuxtModule,
     addPluginTemplate,
@@ -86,7 +88,10 @@ export const module: NuxtModule<InklineModule> = defineNuxtModule({
             // Add plugin template
             addPluginTemplate({
                 mode: "all",
-                src: resolve(templatesDir, "nuxt.ejs"),
+                getContents({ options }) {
+                  const contents = readFileSync(resolve(templatesDir, "nuxt.ejs"), "utf-8")
+                  return template(contents)({ options })
+                },
                 write: true,
                 filename: "inkline.mjs",
                 options: globals || {},
